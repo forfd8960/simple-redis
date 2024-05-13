@@ -12,6 +12,7 @@ pub mod simple_string;
 
 use bytes::BytesMut;
 use enum_dispatch::enum_dispatch;
+use thiserror::Error;
 
 #[allow(dead_code)]
 const BUF_CAP: usize = 4096;
@@ -20,8 +21,14 @@ const CRLF: &[u8] = b"\r\n";
 #[allow(dead_code)]
 const CRLF_LEN: usize = CRLF.len();
 
+pub use array::*;
+pub use bool::*;
+pub use bulk_string::*;
 pub use frame::*;
-use thiserror::Error;
+pub use map::*;
+pub use set::*;
+pub use simple_error::*;
+pub use simple_string::*;
 
 #[enum_dispatch]
 pub trait RespEncode {
