@@ -21,6 +21,6 @@ impl RespEncode for RespArray {
 
 impl RespEncode for RespNullArray {
     fn encode(self) -> Vec<u8> {
-        todo!()
+        b"*-1\r\n".to_vec()
     }
 }
