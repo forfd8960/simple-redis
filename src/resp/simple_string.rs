@@ -70,6 +70,10 @@ mod tests {
         let frame: RespFrame = SimpleString::new("OK").into();
         let encoded = frame.encode();
         assert_eq!(encoded, b"+OK\r\n".to_vec());
+
+        let frame1: RespFrame = SimpleString::new("Hello,World!").into();
+        let encoded = frame1.encode();
+        assert_eq!(encoded, b"+Hello,World!\r\n".to_vec());
     }
 
     #[test]
