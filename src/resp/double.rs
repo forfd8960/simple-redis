@@ -1,4 +1,4 @@
-use super::{RespEncode, BUF_CAP};
+use super::{RespDecode, RespEncode, BUF_CAP};
 
 impl RespEncode for f64 {
     fn encode(self) -> Vec<u8> {
@@ -12,5 +12,15 @@ impl RespEncode for f64 {
 
         buf.extend_from_slice(&ret.into_bytes());
         buf
+    }
+}
+
+impl RespDecode for f64 {
+    const PREFIX: &'static str = "";
+    fn decode(buf: &mut bytes::BytesMut) -> Result<Self, super::RespError> {
+        todo!()
+    }
+    fn expect_length(buf: &[u8]) -> Result<usize, super::RespError> {
+        todo!()
     }
 }
