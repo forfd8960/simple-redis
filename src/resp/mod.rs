@@ -137,7 +137,16 @@ fn calculate_total_length(
             Ok(total)
         }
         "%" => {
-            todo!()
+            for _ in 0..len {
+                let len = SimpleString::expect_length(data)?;
+                data = &data[len..];
+                total += len;
+
+                let len = RespFrame::expect_length(data)?;
+                data = &data[len..];
+                total += len;
+            }
+            Ok(total)
         }
         _ => Ok(len + CRLF_LEN),
     }

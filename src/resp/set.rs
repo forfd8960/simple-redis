@@ -1,6 +1,11 @@
 use std::ops::Deref;
 
-use super::{RespDecode, RespEncode, RespFrame, BUF_CAP};
+use bytes::Buf;
+
+use super::{
+    calculate_total_length, parse_length, RespDecode, RespEncode, RespError, RespFrame, BUF_CAP,
+    CRLF_LEN,
+};
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct RespSet(pub(crate) Vec<RespFrame>);
@@ -21,12 +26,28 @@ impl RespEncode for RespSet {
 
 impl RespDecode for RespSet {
     const PREFIX: &'static str = "~";
-    fn decode(buf: &mut bytes::BytesMut) -> Result<Self, super::RespError> {
-        Ok(RespSet::new(vec![]))
+    fn decode(buf: &mut bytes::BytesMut) -> Result<Self, RespError> {
+        let (end, len) = parse_length(buf, Self::PREFIX)?;
+        let total_len = calculate_total_length(buf, end, len, Self::PREFIX)?;
+        if buf.len() < total_len {
+            return Err(RespError::NotComplete);
+        }
+
+        buf.advance(end + CRLF_LEN);
+
+        let mut frames = vec![];
+        for _ in 0..len {
+            let frame = RespFrame::decode(buf)?;
+            frames.push(frame);
+        }
+
+        Ok(RespSet::new(frames))
     }
 
-    fn expect_length(buf: &[u8]) -> Result<usize, super::RespError> {
-        Ok(0)
+    fn expect_length(buf: &[u8]) -> Result<usize, RespError> {
+        let (end, len) = parse_length(buf, Self::PREFIX)?;
+        let total_len = calculate_total_length(buf, end, len, Self::PREFIX)?;
+        Ok(total_len)
     }
 }
 
