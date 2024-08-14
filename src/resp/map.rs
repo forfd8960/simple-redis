@@ -3,7 +3,12 @@ use std::{
     ops::{Deref, DerefMut},
 };
 
-use super::{RespDecode, RespEncode, RespError, RespFrame, SimpleString, BUF_CAP};
+use bytes::Buf;
+
+use super::{
+    calculate_total_length, parse_length, RespDecode, RespEncode, RespError, RespFrame,
+    SimpleString, BUF_CAP, CRLF_LEN,
+};
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct RespMap(pub(crate) BTreeMap<String, RespFrame>);
@@ -25,10 +30,27 @@ impl RespEncode for RespMap {
 impl RespDecode for RespMap {
     const PREFIX: &'static str = "%";
     fn decode(buf: &mut bytes::BytesMut) -> Result<Self, RespError> {
-        todo!()
+        let (end, len) = parse_length(buf, Self::PREFIX)?;
+        let total_len = calculate_total_length(buf, end, len, Self::PREFIX)?;
+
+        if buf.len() < total_len {
+            return Err(RespError::NotComplete);
+        }
+        buf.advance(end + CRLF_LEN);
+
+        let mut frames = RespMap::new();
+        for _ in 0..len {
+            let key = SimpleString::decode(buf)?;
+            let value = RespFrame::decode(buf)?;
+            frames.insert(key.0, value);
+        }
+        Ok(frames)
     }
+
     fn expect_length(buf: &[u8]) -> Result<usize, RespError> {
-        todo!()
+        let (end, len) = parse_length(buf, Self::PREFIX)?;
+        let total_len = calculate_total_length(buf, end, len, Self::PREFIX)?;
+        Ok(total_len)
     }
 }
 
