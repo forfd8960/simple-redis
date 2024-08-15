@@ -26,6 +26,7 @@ pub use bool::*;
 pub use bulk_string::*;
 pub use frame::*;
 pub use map::*;
+pub use null::*;
 pub use set::*;
 pub use simple_error::*;
 pub use simple_string::*;
