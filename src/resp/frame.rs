@@ -95,8 +95,8 @@ impl RespDecode for RespFrame {
             Some(b',') => f64::expect_length(buf),
             Some(b'%') => RespMap::expect_length(buf),
             Some(b'~') => RespSet::expect_length(buf),
-            Some(b'*') => RespNullArray::expect_length(buf),
-            Some(b'$') => RespNullBulkString::expect_length(buf),
+            Some(b'*') => RespArray::expect_length(buf),
+            Some(b'$') => BulkString::expect_length(buf),
             _ => Err(RespError::NotComplete),
         }
     }
