@@ -18,14 +18,14 @@ pub trait CommandExecutor {
     fn execute(self, store: &InMemStore) -> RespFrame;
 }
 
-// #[enum_dispatch(CommandExecutor)]
+#[enum_dispatch(CommandExecutor)]
 #[derive(Debug)]
 pub enum Command {
     Get(Get),
     Set(Set),
-    HGet(HGet),
-    HSet(HGet),
-    HGetAll(HGet),
+    // HGet(HGet),
+    // HSet(HGet),
+    // HGetAll(HGet),
     Unknown(Unknown),
 }
 
@@ -74,9 +74,39 @@ pub struct HGetAll {
 #[derive(Debug)]
 pub struct Unknown;
 
+impl TryFrom<RespFrame> for Command {
+    type Error = CommandError;
+    fn try_from(value: RespFrame) -> Result<Self, Self::Error> {
+        match value {
+            RespFrame::Array(arr) => arr.try_into(),
+            _ => Err(CommandError::InvalidCommand(
+                "Command must be an array".to_string(),
+            )),
+        }
+    }
+}
+
 impl TryFrom<RespArray> for Command {
     type Error = CommandError;
-    fn try_from(value: RespArray) -> Result<Self, Self::Error> {
-        todo!()
+    fn try_from(v: RespArray) -> Result<Self, Self::Error> {
+        match v.first() {
+            Some(RespFrame::BulkString(ref cmd)) => match cmd.as_ref() {
+                b"get" => Ok(Get::try_from(v)?.into()),
+                _ => Ok(Unknown.into()),
+            },
+            _ => Err(CommandError::InvalidCommand(
+                "Command must have a BulkString as the first argument".to_string(),
+            )),
+        }
     }
+}
+
+impl CommandExecutor for Unknown {
+    fn execute(self, _: &InMemStore) -> RespFrame {
+        RESP_OK.clone()
+    }
+}
+
+fn extract_args(val: RespArray, start: usize) -> Result<Vec<RespFrame>, CommandError> {
+    Ok(val.0.into_iter().skip(start).collect::<Vec<RespFrame>>())
 }
