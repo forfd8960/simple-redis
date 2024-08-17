@@ -1,14 +1,24 @@
+pub mod map;
+
 use crate::{
-    resp::{RespError, RespFrame},
+    resp::{RespArray, RespError, RespFrame, SimpleString},
     storage::memory::InMemStore,
 };
+use enum_dispatch::enum_dispatch;
+use lazy_static::lazy_static;
 use std::string::FromUtf8Error;
 use thiserror::Error;
 
+lazy_static! {
+    static ref RESP_OK: RespFrame = SimpleString::new("OK").into();
+}
+
+#[enum_dispatch]
 pub trait CommandExecutor {
     fn execute(self, store: &InMemStore) -> RespFrame;
 }
 
+// #[enum_dispatch(CommandExecutor)]
 #[derive(Debug)]
 pub enum Command {
     Get(Get),
@@ -63,3 +73,10 @@ pub struct HGetAll {
 
 #[derive(Debug)]
 pub struct Unknown;
+
+impl TryFrom<RespArray> for Command {
+    type Error = CommandError;
+    fn try_from(value: RespArray) -> Result<Self, Self::Error> {
+        todo!()
+    }
+}
