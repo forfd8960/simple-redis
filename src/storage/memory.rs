@@ -108,19 +108,9 @@ mod tests {
             RespFrame::SimpleString("2024-08-17".into()),
         );
 
-        let map = DashMap::new();
-        map.insert("author".to_string(), RespFrame::SimpleString("Alex".into()));
-        map.insert(
-            "content".to_string(),
-            RespFrame::SimpleString("this is a blog".into()),
-        );
-        map.insert(
-            "create_time".to_string(),
-            RespFrame::SimpleString("2024-08-17".into()),
-        );
         let blog_data = store.hgetall("blog").unwrap();
 
-        assert_eq!(map.len(), 3);
+        assert_eq!(blog_data.len(), 3);
         assert_eq!(
             blog_data.get("author").unwrap().value(),
             &RespFrame::SimpleString("Alex".into())
